@@ -11,11 +11,13 @@ Built on the **M5 / Walmart** dataset: 3,049 products × 10 stores × 3 states, 
 
 ## The dashboard
 
-![Chain-wide KPIs and the 28-day forecast](photos/dashboard-overview.png)
+![KPIs and the 28-day forecast](photos/dashboard-overview.png)
 
-The landing view: lifetime revenue and units, the next 28 days of expected revenue, and the hold-out
-score stated as accuracy (`100 - WMAPE`) next to how far it beats the naive baseline. The chart runs
-1,941 observed days into the dashed 28-day forecast — the deep notches are the Christmas closures.
+The landing view: lifetime revenue and units for the whole chain, the next 28 days of expected
+revenue for the 4,000 product-store series the model serves, hold-out accuracy per store-week (with
+per-product accuracy over the 28-day window beneath it), and how far the model beats the naive
+baseline on RMSE. The chart plots those same 4,000 series for two years and runs into the dashed
+28-day forecast, so history and forecast share one scale. The deep notches are the Christmas closures.
 
 ![Live forecasting, top products, category and weekday breakdowns](photos/dashboard-forecast-analytics.png)
 
@@ -26,26 +28,39 @@ highlighted.
 
 ![Store performance table, model metrics, and restocking insights](photos/dashboard-stores-insights.png)
 
-Every store ranked by lifetime revenue with its own 28-day forecast, the full metric set (MAE, RMSE,
-WMAPE, WRMSSE) alongside the training and test windows, and the two lists a stocking decision actually
-needs — products with declining demand ranked by revenue at risk, and growing ones ranked by
-opportunity.
+Every store ranked by lifetime revenue with its own 28-day forecast; the model's error metrics (MAE,
+RMSE, WRMSSE and the baseline) with accuracy at each level and the training and test windows; and the
+two lists a stocking decision actually needs — products with declining demand ranked by revenue at
+risk, and growing ones ranked by opportunity.
 
 ### Accuracy at the level decisions are made
 
-![Accuracy card and accuracy by level, from a demo run on synthetic data](photos/dashboard-accuracy-by-level.png)
+![Accuracy card and accuracy by level](photos/dashboard-accuracy-by-level.png)
 
-*This screenshot is from a demo run on **synthetic** M5-shaped data (600 series), not the real M5
-results above. It shows the layout. Its numbers are not the project's results.*
+Scored per product, per store, per day, most of the forecast error is chance: an item that sells a
+few units a day sells one on some days and six on others, and no model can know which. Buyers order
+per product per week or month, and planners look at stores and departments, where that noise largely
+cancels. So the dashboard leads with accuracy per **store-week**, with **per-product accuracy over the
+28-day window** underneath. The *Accuracy by level* panel scores the same test window
+(25 Apr – 22 May 2016) with the forecast summed to each level; the tick marks the seasonal naive
+baseline. The scoring lives in `forecasting/evaluation.py`.
 
-Scored per product, per store, per day, most of the forecast error is chance. Even a model that knew
-each item's true expected demand would land around 40% accuracy there. Buyers order per product per
-week or month, and planners look at stores and departments, where that noise largely cancels. So
-the dashboard now leads with accuracy per **store-week**, with **per-product accuracy over the 28-day
-window** underneath. The *Accuracy by level* panel scores the same test-window forecast summed to
-each level, with a tick marking the seasonal naive baseline. The per-day WMAPE is still computed
-and returned by `/api/metrics`, but the dashboard no longer shows it. The scoring lives in
-`forecasting/evaluation.py`.
+| Level (accuracy = 100 − WMAPE) | Model | Seasonal naive |
+|---|---|---|
+| Product · store · day | 26.4% | 9.0% |
+| Product · store · week | 60.4% | 54.1% |
+| Product · store · 28 days | 71.1% | 71.7% |
+| Department · store · week | 89.8% | 89.4% |
+| Store · day | 89.7% | 87.9% |
+| Store · week | 92.2% | 93.6% |
+| All stores · day | 92.6% | 92.3% |
+
+The model's lift is at the product level: per product per week it scores 60.4% against the
+baseline's 54.1%, and per product per day 26.4% against 9.0%. At the two levels the headline card
+shows, it is level with or slightly behind the baseline — 92.2% vs 93.6% per store-week, 71.1% vs
+71.7% per product over 28 days. Errors that are small item by item can add up when everything is
+summed, so the higher-level numbers say how predictable the totals are, not how much the model adds.
+The per-day WMAPE is still computed and returned by `/api/metrics`; the dashboard no longer shows it.
 
 ---
 
