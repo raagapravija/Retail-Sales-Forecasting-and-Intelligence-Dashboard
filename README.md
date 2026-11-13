@@ -31,6 +31,22 @@ WMAPE, WRMSSE) alongside the training and test windows, and the two lists a stoc
 needs — products with declining demand ranked by revenue at risk, and growing ones ranked by
 opportunity.
 
+### Accuracy at the level decisions are made
+
+![Accuracy card and accuracy by level, from a demo run on synthetic data](photos/dashboard-accuracy-by-level.png)
+
+*This screenshot is from a demo run on **synthetic** M5-shaped data (600 series), not the real M5
+results above. It shows the layout. Its numbers are not the project's results.*
+
+Scored per product, per store, per day, most of the forecast error is chance. Even a model that knew
+each item's true expected demand would land around 40% accuracy there. Buyers order per product per
+week or month, and planners look at stores and departments, where that noise largely cancels. So
+the dashboard now leads with accuracy per **store-week**, with **per-product accuracy over the 28-day
+window** underneath. The *Accuracy by level* panel scores the same test-window forecast summed to
+each level, with a tick marking the seasonal naive baseline. The per-day WMAPE is still computed
+and returned by `/api/metrics`, but the dashboard no longer shows it. The scoring lives in
+`forecasting/evaluation.py`.
+
 ---
 
 ## What's here
