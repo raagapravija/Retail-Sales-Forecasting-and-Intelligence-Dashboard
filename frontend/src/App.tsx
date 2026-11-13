@@ -15,7 +15,7 @@ import { api } from "./lib/api";
 import { compactNum, compactUsd, longDate, pct } from "./lib/format";
 import { CategoryChart, HistoryForecastChart, WeekdayChart } from "./components/charts";
 import { ForecastPanel, InsightList, ModelPanel, StoreTable, TopProducts } from "./components/panels";
-import { Card, ErrorNote, Kpi, Skeleton } from "./components/primitives";
+import { Card, ErrorNote, Kpi, KpiStrip, Loading } from "./components/primitives";
 
 interface Data {
   overview: Overview;
@@ -26,6 +26,8 @@ interface Data {
   topProducts: TopProduct[];
   weekday: WeekdayRow[];
   history: SalesPoint[];
+  /** "served" when history covers the same series as the forecast. */
+  historyScope: "served" | "chain";
   forecastTotals: ForecastTotal[];
   attention: Insight[];
   restock: Insight[];
@@ -45,8 +47,12 @@ export default function App() {
       api.topProducts(8),
       api.weekday(),
       // Two years of daily history keeps the headline chart legible; the API
-      // holds all five.
-      api.history("2014-06-01"),
+      // holds all five. Prefer the served series so history and forecast cover
+      // the same products; older artifacts only have the chain-wide total.
+      api.history("2014-06-01", "served")
+        .then((points) => ({ points, scope: "served" as const }))
+        .catch(() => api.history("2014-06-01", "chain")
+          .then((points) => ({ points, scope: "chain" as const }))),
       api.forecastTotals(),
       api.attention(6),
       api.restock(6),
@@ -54,7 +60,8 @@ export default function App() {
       .then(([overview, metrics, info, categories, stores, topProducts, weekday,
               history, forecastTotals, attention, restock]) =>
         setData({ overview, metrics, info, categories, stores, topProducts, weekday,
-                  history, forecastTotals, attention, restock }))
+                  history: history.points, historyScope: history.scope,
+                  forecastTotals, attention, restock }))
       .catch((e) => setError(e instanceof Error ? e.message : String(e)));
   }, []);
 
@@ -74,10 +81,7 @@ export default function App() {
   if (!data) {
     return (
       <Shell>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
-          {[0, 1, 2, 3].map((i) => <Skeleton key={i} height={104} />)}
-        </div>
-        <Skeleton height={360} />
+        <Loading label="Loading dashboard…" />
       </Shell>
     );
   }
@@ -89,7 +93,7 @@ export default function App() {
       subtitle={`${longDate(o.history_from)} – ${longDate(o.history_to)} observed · forecasting ${longDate(o.forecast_from)} – ${longDate(o.forecast_to)}`}
     >
       {/* ---------------------------------------------------------- KPIs */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <KpiStrip>
         <Kpi
           label="Total sales"
           value={compactUsd(o.total_revenue)}
@@ -103,21 +107,23 @@ export default function App() {
         <Kpi
           label="Forecast accuracy"
           {...accuracyKpi(m, o.forecast_accuracy_pct)}
-          accent="#1baf7a"
         />
         <Kpi
           label="Beats naive baseline by"
           value={pct(m.improvement_vs_baseline_pct)}
           hint={`RMSE ${m.rmse.toFixed(2)} vs ${m.baseline_rmse.toFixed(2)}`}
-          accent="#eb6834"
         />
-      </div>
+      </KpiStrip>
 
       {/* ------------------------------------------- history + forecast */}
       <Card
         className="mt-4"
         title="Historical sales and 28-day forecast"
-        subtitle="Daily units chain-wide; the dashed segment is the model's forecast"
+        subtitle={
+          data.historyScope === "served"
+            ? `Daily units for the ${compactNum(o.series_served)} product-store series the model forecasts; the dashed segment is its forecast`
+            : "Daily units chain-wide; the dashed segment is the model's forecast"
+        }
       >
         <HistoryForecastChart history={data.history} forecast={data.forecastTotals} />
       </Card>

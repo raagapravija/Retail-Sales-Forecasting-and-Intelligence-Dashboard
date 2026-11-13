@@ -91,6 +91,28 @@ def test_chain_history_is_ordered(client):
     assert all("units" in p for p in points)
 
 
+def test_served_history_matches_the_forecast_scope(client):
+    """The served-series history must cover the same series as the forecast.
+
+    Its last days are rebuilt from the model's own serving history, so they must match
+    exactly; and it must be a subset of the chain-wide total.
+    """
+    res = client.get("/api/sales/history?scope=served")
+    if res.status_code == 404:
+        pytest.skip("artifacts predate bi_daily_sales_served")
+    body = res.json()
+    assert body["scope"] == "served"
+    served = pd.DataFrame(body["points"]).set_index("date")["units"]
+
+    hist = store.history.groupby("d_num")["sales"].sum()
+    dates = store.calendar.set_index("d_num").loc[hist.index, "date"]
+    expected = pd.Series(hist.to_numpy(), index=pd.to_datetime(dates).dt.strftime("%Y-%m-%d"))
+    np.testing.assert_allclose(served.loc[expected.index].to_numpy(), expected.to_numpy())
+
+    chain = pd.DataFrame(client.get("/api/sales/history").json()["points"]).set_index("date")["units"]
+    assert (served <= chain.loc[served.index] + 1e-9).all()
+
+
 def test_series_history_needs_both_ids(client, any_item):
     assert client.get(f"/api/sales/history?item_id={any_item}").status_code == 400
 

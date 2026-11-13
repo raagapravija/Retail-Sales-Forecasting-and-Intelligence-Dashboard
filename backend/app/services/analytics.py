@@ -13,8 +13,15 @@ from ..store import store
 
 
 # ------------------------------------------------------------------ history
-def daily_sales(start: str | None = None, end: str | None = None) -> pd.DataFrame:
-    df = store.bi("daily_sales").copy()
+def daily_sales(start: str | None = None, end: str | None = None,
+                served_only: bool = False) -> pd.DataFrame:
+    """Daily units, chain-wide or restricted to the series the model serves.
+
+    ``served_only`` reads ``bi_daily_sales_served``: the same products the 28-day
+    forecast covers, so the two can be drawn on one axis. Raises
+    ``FileNotFoundError`` for artifacts written before that table existed.
+    """
+    df = store.bi("daily_sales_served" if served_only else "daily_sales").copy()
     df["date"] = pd.to_datetime(df["date"])
     if start:
         df = df[df["date"] >= pd.Timestamp(start)]

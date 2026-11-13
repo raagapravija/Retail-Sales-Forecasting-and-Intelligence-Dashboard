@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { HAIRLINE, INK_FAINT, INK_MUTED } from "../lib/format";
+import { HAIRLINE, INK_FAINT, INK_MUTED, SURFACE } from "../lib/format";
 
 /** A titled panel. Every chart and table on the page sits in one of these. */
 export function Card({
@@ -31,25 +31,27 @@ export function Card({
   );
 }
 
-/** A single headline number. The chart *is* the number — no one-bar bar chart. */
-export function Kpi({
-  label,
-  value,
-  hint,
-  accent,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  accent?: string;
-}) {
+/**
+ * The headline numbers: one panel split by hairlines, not a row of separate cards.
+ * Each child is a <Kpi />.
+ */
+export function KpiStrip({ children }: { children: ReactNode }) {
   return (
-    <div className="card flex flex-col justify-between min-h-[104px]">
+    <section className="card p-0 grid sm:grid-cols-2 lg:grid-cols-4">{children}</section>
+  );
+}
+
+/** A single headline number. The chart *is* the number — no one-bar bar chart. */
+export function Kpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div
+      className="flex flex-col justify-between min-h-[104px] px-5 py-4 border-hairline
+                 border-b last:border-b-0 sm:[&:nth-child(odd)]:border-r
+                 sm:[&:nth-child(n+3)]:border-b-0
+                 lg:border-b-0 lg:border-r lg:last:border-r-0"
+    >
       <span className="label">{label}</span>
-      <span
-        className="num text-[27px] leading-none font-semibold mt-2 tracking-tight"
-        style={accent ? { color: accent } : undefined}
-      >
+      <span className="num text-[27px] leading-none font-semibold mt-2 tracking-tight">
         {value}
       </span>
       {hint && <span className="text-[11.5px] text-ink-faint mt-1.5">{hint}</span>}
@@ -57,20 +59,15 @@ export function Kpi({
   );
 }
 
-export function Skeleton({ height = 260 }: { height?: number }) {
-  return (
-    <div
-      className="w-full rounded-lg animate-pulse"
-      style={{ height, background: HAIRLINE }}
-      aria-label="Loading"
-    />
-  );
+/** Plain loading text in place of a skeleton placeholder. */
+export function Loading({ label = "Loading…" }: { label?: string }) {
+  return <p className="text-[12.5px] text-ink-faint py-6">{label}</p>;
 }
 
 export function ErrorNote({ error }: { error: string }) {
   return (
-    <div className="card border-series-8/30 bg-series-8/[0.04]">
-      <p className="text-[13px] font-semibold text-series-8">Could not load</p>
+    <div className="card border-down">
+      <p className="text-[13px] font-semibold text-down">Could not load</p>
       <p className="text-[12px] text-ink-muted mt-1 font-mono break-words">{error}</p>
     </div>
   );
@@ -90,15 +87,17 @@ export const gridProps = {
   vertical: false,
 } as const;
 
+/** Flat, square tooltip that appears in place: no shadow, no slide-in. */
 export const tooltipStyle = {
   contentStyle: {
-    background: "#ffffff",
+    background: SURFACE,
     border: `1px solid ${HAIRLINE}`,
-    borderRadius: 10,
+    borderRadius: 2,
     fontSize: 12,
-    boxShadow: "0 4px 16px rgba(0,0,0,.07)",
+    boxShadow: "none",
   },
   labelStyle: { color: INK_FAINT, fontSize: 11, marginBottom: 4 },
+  isAnimationActive: false,
 } as const;
 
 export const legendProps = {

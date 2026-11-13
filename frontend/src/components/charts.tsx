@@ -1,5 +1,4 @@
 import {
-  Area,
   Bar,
   BarChart,
   CartesianGrid,
@@ -13,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import type { Category, ForecastTotal, SalesPoint, WeekdayRow } from "../lib/api";
-import { SERIES, compactNum, compactUsd, num, shortDate } from "../lib/format";
+import { ACTUAL, FORECAST, INK_FAINT, INK_MUTED, compactNum, compactUsd, num, shortDate } from "../lib/format";
 import { axisProps, gridProps, legendProps, tooltipStyle } from "./primitives";
 
 /**
@@ -55,26 +54,26 @@ export function HistoryForecastChart({
           labelFormatter={(l: string) => shortDate(l)}
         />
         <Legend {...legendProps} />
-        <Area
+        <Line
           type="monotone"
           dataKey="actual"
           name="Actual units"
-          stroke={SERIES[0]}
-          strokeWidth={2}
-          fill={SERIES[0]}
-          fillOpacity={0.08}
+          stroke={ACTUAL}
+          strokeWidth={1.6}
           dot={false}
           connectNulls={false}
+          isAnimationActive={false}
         />
         <Line
           type="monotone"
           dataKey="forecast"
           name="Forecast (28 days)"
-          stroke={SERIES[1]}
-          strokeWidth={2.4}
+          stroke={FORECAST}
+          strokeWidth={2}
           strokeDasharray="6 4"
           dot={false}
           connectNulls={false}
+          isAnimationActive={false}
         />
       </ComposedChart>
     </ResponsiveContainer>
@@ -101,12 +100,12 @@ export function CategoryChart({ data }: { data: Category[] }) {
         />
         <Bar
           dataKey="revenue"
-          fill={SERIES[0]}
-          radius={[0, 4, 4, 0]}
+          fill={ACTUAL}
+          isAnimationActive={false}
           label={{
             position: "right",
             formatter: (v: number) => compactUsd(v),
-            fill: "#52514e",
+            fill: INK_MUTED,
             fontSize: 11,
           }}
         />
@@ -133,9 +132,9 @@ export function WeekdayChart({ data }: { data: WeekdayRow[] }) {
           formatter={(v: number) => [num(v), "Avg units/day"]}
           cursor={{ fill: "rgba(0,0,0,.03)" }}
         />
-        <Bar dataKey="mean_units" radius={[4, 4, 0, 0]}>
+        <Bar dataKey="mean_units" isAnimationActive={false}>
           {rows.map((r) => (
-            <Cell key={r.weekday} fill={r.weekend ? SERIES[1] : SERIES[0]} />
+            <Cell key={r.weekday} fill={r.weekend ? ACTUAL : INK_FAINT} />
           ))}
         </Bar>
       </BarChart>
@@ -178,20 +177,22 @@ export function SeriesForecastChart({
           type="monotone"
           dataKey="actual"
           name="Actual units"
-          stroke={SERIES[0]}
-          strokeWidth={2}
+          stroke={ACTUAL}
+          strokeWidth={1.6}
           dot={false}
           connectNulls={false}
+          isAnimationActive={false}
         />
         <Line
           type="monotone"
           dataKey="forecast"
           name="Forecast"
-          stroke={SERIES[1]}
-          strokeWidth={2.4}
+          stroke={FORECAST}
+          strokeWidth={2}
           strokeDasharray="6 4"
-          dot={{ r: 2.5, fill: SERIES[1], strokeWidth: 0 }}
+          dot={false}
           connectNulls={false}
+          isAnimationActive={false}
         />
       </ComposedChart>
     </ResponsiveContainer>

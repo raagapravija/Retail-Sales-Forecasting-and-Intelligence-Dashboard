@@ -18,7 +18,7 @@ from sqlalchemy import create_engine, text
 ARTIFACTS = Path(os.environ.get("RSF_ARTIFACTS_DIR", "artifacts"))
 DATABASE_URL = os.environ.get("RSF_DATABASE_URL")
 
-TABLES = ["daily_sales", "category", "store", "top_products", "weekday",
+TABLES = ["daily_sales", "daily_sales_served", "category", "store", "top_products", "weekday",
           "weekly_revenue", "catalog"]
 
 

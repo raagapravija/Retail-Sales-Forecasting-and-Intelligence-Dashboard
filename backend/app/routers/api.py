@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 import pandas as pd
 from fastapi import APIRouter, HTTPException, Query
 
@@ -50,6 +52,10 @@ def get_sales_history(
     store_id: str | None = Query(None),
     start: str | None = Query(None, description="ISO date, inclusive"),
     end: str | None = Query(None, description="ISO date, inclusive"),
+    scope: Literal["chain", "served"] = Query(
+        "chain",
+        description="'chain': every series in the dataset. 'served': only the series the "
+                    "model forecasts, so it is comparable with /api/forecast/totals."),
 ):
     """Chain-wide daily units, or one series when both ids are supplied."""
     if item_id and store_id:
@@ -59,10 +65,17 @@ def get_sales_history(
     elif item_id or store_id:
         raise HTTPException(400, "supply both item_id and store_id, or neither")
     else:
-        df = analytics.daily_sales(start, end).rename(columns={"units": "units"})
+        try:
+            df = analytics.daily_sales(start, end, served_only=scope == "served")
+        except FileNotFoundError as exc:
+            raise HTTPException(
+                404, "served-series history is not in these artifacts; "
+                     "re-run Part 6 of the notebook, or use scope=chain") from exc
     df = df.copy()
     df["date"] = pd.to_datetime(df["date"]).dt.date
-    return {"item_id": item_id, "store_id": store_id, "points": _records(df)}
+    return {"item_id": item_id, "store_id": store_id,
+            "scope": None if (item_id and store_id) else scope,
+            "points": _records(df)}
 
 
 # --------------------------------------------------------------- forecast

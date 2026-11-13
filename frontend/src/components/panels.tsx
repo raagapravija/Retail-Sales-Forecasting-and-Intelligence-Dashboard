@@ -4,9 +4,9 @@ import type {
 } from "../lib/api";
 import { api } from "../lib/api";
 import type { ForecastResponse, SalesPoint } from "../lib/api";
-import { SERIES, compactUsd, longDate, num, pct, signedPct, usd } from "../lib/format";
+import { ACTUAL, DOWN, UP, compactUsd, longDate, num, pct, signedPct, usd } from "../lib/format";
 import { SeriesForecastChart } from "./charts";
-import { Card, Skeleton } from "./primitives";
+import { Card, Loading } from "./primitives";
 
 /** Best sellers. A ranked list, not a chart — the order *is* the message. */
 export function TopProducts({ rows }: { rows: TopProduct[] }) {
@@ -23,10 +23,10 @@ export function TopProducts({ rows }: { rows: TopProduct[] }) {
                 {compactUsd(r.revenue)}
               </span>
             </div>
-            <div className="h-1.5 rounded-full bg-hairline mt-1.5 overflow-hidden">
+            <div className="h-1.5 bg-hairline mt-1.5 overflow-hidden">
               <div
-                className="h-full rounded-full"
-                style={{ width: `${(r.revenue / max) * 100}%`, background: SERIES[0] }}
+                className="h-full"
+                style={{ width: `${(r.revenue / max) * 100}%`, background: ACTUAL }}
               />
             </div>
           </div>
@@ -56,8 +56,8 @@ export function StoreTable({ rows }: { rows: StoreRow[] }) {
               <td className="py-2 px-1 font-medium">
                 {i === 0 && (
                   <span
-                    className="inline-block w-1.5 h-1.5 rounded-full mr-2 align-middle"
-                    style={{ background: SERIES[1] }}
+                    className="inline-block w-1.5 h-1.5 mr-2 align-middle"
+                    style={{ background: ACTUAL }}
                     aria-label="Top performer"
                   />
                 )}
@@ -81,7 +81,7 @@ export function StoreTable({ rows }: { rows: StoreRow[] }) {
 
 /** Business intelligence: which products need attention, which need restocking. */
 export function InsightList({ rows, tone }: { rows: Insight[]; tone: "down" | "up" }) {
-  const colour = tone === "down" ? SERIES[7] : SERIES[2];
+  const colour = tone === "down" ? DOWN : UP;
   if (!rows.length) {
     return <p className="text-[12.5px] text-ink-faint">No series crossed the ±5% threshold.</p>;
   }
@@ -176,10 +176,10 @@ function AccuracyByLevel({ levels }: { levels: LevelAccuracy[] }) {
               <span className="text-[11.5px] text-ink-muted truncate">{lv.label}</span>
               <span className="num text-[12px] font-semibold shrink-0">{pct(lv.accuracy_pct)}</span>
             </div>
-            <div className="relative h-1.5 mt-1 rounded-full bg-hairline">
+            <div className="relative h-1.5 mt-1 bg-hairline">
               <div
-                className="absolute inset-y-0 left-0 rounded-full"
-                style={{ width: `${lv.accuracy_pct}%`, background: SERIES[2] }}
+                className="absolute inset-y-0 left-0"
+                style={{ width: `${lv.accuracy_pct}%`, background: ACTUAL }}
               />
               {lv.naive_accuracy_pct != null && (
                 <div
@@ -296,10 +296,10 @@ export function ForecastPanel({ stores, categories }: { stores: StoreRow[]; cate
       </div>
 
       {error && (
-        <p className="mt-4 text-[12px] text-series-8 font-mono break-words">{error}</p>
+        <p className="mt-4 text-[12px] text-down font-mono break-words">{error}</p>
       )}
 
-      {busy && !result && <div className="mt-5"><Skeleton height={260} /></div>}
+      {busy && !result && <Loading label="Running the model…" />}
 
       {result && (
         <div className="mt-5">

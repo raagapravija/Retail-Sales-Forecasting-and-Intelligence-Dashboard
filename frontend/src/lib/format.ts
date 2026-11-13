@@ -40,13 +40,17 @@ export const longDate = (iso: string): string =>
     year: "numeric",
   });
 
-/** The categorical palette, assigned in fixed order and never cycled. */
-export const SERIES = [
-  "#2a78d6", "#eb6834", "#1baf7a", "#eda100",
-  "#e87ba4", "#008300", "#4a3aa7", "#e34948",
-] as const;
+/**
+ * The dashboard's colours. Kept to two data colours plus up/down for change,
+ * matching `tailwind.config.js`.
+ */
+export const ACTUAL = "#1f5fa8";
+export const FORECAST = "#c4561d";
+export const UP = "#2e7a4c";
+export const DOWN = "#b3392f";
+export const SURFACE = "#faf9f6";
 
-export const INK = "#0b0b0b";
+export const INK = "#1a1a18";
 export const INK_MUTED = "#52514e";
-export const INK_FAINT = "#8a8880";
-export const HAIRLINE = "#e6e5e0";
+export const INK_FAINT = "#85837b";
+export const HAIRLINE = "#dedbd2";

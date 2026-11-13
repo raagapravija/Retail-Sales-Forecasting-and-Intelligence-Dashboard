@@ -89,9 +89,15 @@ export const api = {
     get<ProductRow[]>(`/api/products${catId ? `?cat_id=${encodeURIComponent(catId)}` : ""}`),
   topProducts: (limit = 8) => get<TopProduct[]>(`/api/analytics/top-products?limit=${limit}`),
   weekday: () => get<WeekdayRow[]>("/api/analytics/weekday"),
-  history: (start?: string) =>
-    get<{ points: SalesPoint[] }>(`/api/sales/history${start ? `?start=${start}` : ""}`)
-      .then((r) => r.points),
+  /**
+   * Daily units. `served` covers only the series the model forecasts, so it shares
+   * an axis with `forecastTotals`; `chain` is every series in the dataset.
+   */
+  history: (start?: string, scope: "chain" | "served" = "chain") => {
+    const q = new URLSearchParams({ scope });
+    if (start) q.set("start", start);
+    return get<{ points: SalesPoint[] }>(`/api/sales/history?${q}`).then((r) => r.points);
+  },
   seriesHistory: (itemId: string, storeId: string) =>
     get<{ points: SalesPoint[] }>(
       `/api/sales/history?item_id=${encodeURIComponent(itemId)}&store_id=${encodeURIComponent(storeId)}`
