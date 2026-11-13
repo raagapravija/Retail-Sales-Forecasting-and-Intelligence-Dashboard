@@ -1,11 +1,11 @@
 # Retail Sales Forecasting & Intelligence Dashboard
 
 Forecasts how many units each product will sell in each store over the next **28 days**, and puts
-that forecast — with the sales analytics behind it — on a dashboard for the people who decide what
+that forecast, with the sales analytics behind it, on a dashboard for the people who decide what
 to stock.
 
 Built on the **M5 / Walmart** dataset: 3,049 products × 10 stores in 3 states (California, Texas,
-Wisconsin), daily unit sales from 29 Jan 2011 to 22 May 2016 — 1,941 days, 59M observations.
+Wisconsin), daily unit sales from 29 Jan 2011 to 22 May 2016: 1,941 days and 59M observations.
 
 ![Dashboard overview](photos/dashboard-overview.png)
 
@@ -15,7 +15,7 @@ Wisconsin), daily unit sales from 29 Jan 2011 to 22 May 2016 — 1,941 days, 59M
 
 | Who | What they use it for |
 |---|---|
-| **Buyers and replenishment planners** | A 28-day unit and revenue forecast for any product in any store, to size the next order. Two ranked lists — *Needs attention* (demand expected to fall) and *Stock up* (demand expected to rise) — ordered by the revenue at stake, so the biggest decisions come first. |
+| **Buyers and replenishment planners** | A 28-day unit and revenue forecast for any product in any store, to size the next order. Two ranked lists, *Needs attention* (demand expected to fall) and *Stock up* (demand expected to rise), are ordered by the revenue at stake, so the biggest decisions come first. |
 | **Category and merchandising managers** | Which categories bring units versus revenue, how much promotions and SNAP (food-assistance) days lift sales, and how strongly weekends drive demand. |
 | **Store and regional managers** | Every store ranked by lifetime revenue alongside its own 28-day forecast. |
 | **Data and analytics teams** | A worked example of a sales forecast that is honest about its accuracy: no future information leaks into training, and the dashboard's live forecasts are guaranteed to match the model that was evaluated. |
@@ -27,11 +27,11 @@ Wisconsin), daily unit sales from 29 Jan 2011 to 22 May 2016 — 1,941 days, 59M
 ### About the business
 
 * **Weekends drive demand.** Saturdays and Sundays average 41,580 units chain-wide against 31,753 on
-  weekdays — **+30.9%**, the largest effect in the data.
+  weekdays. That is **+30.9%**, the largest effect in the data.
 * **Christmas is a closure, not a peak.** Stores are shut on 25 December (sales −100%). Thanksgiving
   (−38.9%) and New Year (−25.5%) are the next-biggest drops, and **November is the weakest month** of
   the year.
-* **FOODS is 69% of units but 58% of revenue** — the highest-volume, lowest-price category.
+* **FOODS is 69% of units but 58% of revenue.** It is the highest-volume, lowest-price category.
 * **CA_3 is the strongest store**: 11.4M units and $32.7M, 2.7× the units of the weakest (CA_4).
 * **Demand is inelastic.** Within a product, a 1% price rise cuts units by about **0.64%**.
 * **Promotions work unevenly.** On promotion, HOBBIES sells **+64%**, FOODS **+45%**, HOUSEHOLD only
@@ -42,8 +42,8 @@ Wisconsin), daily unit sales from 29 Jan 2011 to 22 May 2016 — 1,941 days, 59M
 
 * **The model beats simple rules, consistently.** The shipped LightGBM model cuts RMSE by **23.3%**
   against the seasonal naive forecast ("same weekday, four weeks ago"), and beats it in **4 of 4**
-  rolling backtests (21.0% on average). Its WRMSSE — the M5 competition's metric, where below 1.0
-  means better than a naive forecast — is **0.855**, against 1.17 for both naive rules.
+  rolling backtests (21.0% on average). Its WRMSSE (the M5 competition's metric, where below 1.0
+  means better than a naive forecast) is **0.855**, against 1.17 for both naive rules.
 * **Product-by-day error is mostly chance.** A product that sells a few units a day sells one on some
   days and six on others, and no model can know which. So the dashboard reports accuracy at the
   levels decisions are made, scoring the same 28-day test window summed to each level:
@@ -64,7 +64,7 @@ Wisconsin), daily unit sales from 29 Jan 2011 to 22 May 2016 — 1,941 days, 59M
   can add up once everything is summed, so the high store-level numbers show how predictable the
   totals are, not how much the model adds there.
 * **Leakage would have flattered the score by 11.8%.** Features like "yesterday's sales" don't exist
-  when you forecast 28 days ahead. A model given them anyway scores RMSE 2.16 instead of 2.45 — a
+  when you forecast 28 days ahead. A model given them anyway scores RMSE 2.16 instead of 2.45, a
   number that could never be achieved in practice. The shipped model uses none of them.
 * **Forecasting day by day doesn't escape that.** Predicting one day at a time and feeding each
   prediction back in (recursive forecasting) sees its error grow **37%** from day 1 to day 28. Over
@@ -88,7 +88,7 @@ M5 CSVs ──► notebook ──► artifacts/ ──► FastAPI ──► Reac
    sales history lagged by at least 28 days (`lag_28` and rolling windows ending 28 days back). These
    live in one module, `forecasting/features.py`, used by both the notebook and the API.
 3. **Split by time.** Train on the past, choose the model on a 28-day validation window, and score it
-   once on the final 28 days (25 Apr – 22 May 2016), which no step of training or tuning ever sees.
+   once on the final 28 days (25 Apr to 22 May 2016), which no step of training or tuning ever sees.
 4. **Compare models.** Two naive baselines, Linear Regression, Random Forest, XGBoost and LightGBM,
    then a 10-trial Optuna search on LightGBM. The model with the lowest validation RMSE ships:
    **tuned LightGBM**. Every run is logged to MLflow.
@@ -129,7 +129,7 @@ on each bar marking the naive baseline; and the *Needs attention* and *Stock up*
 
 ## Results
 
-Scored once on the final 28 days (25 Apr – 22 May 2016), never used for training or model selection.
+Scored once on the final 28 days (25 Apr to 22 May 2016), never used for training or model selection.
 
 | Model | MAE | RMSE | WMAPE | WRMSSE | Notes |
 |---|---|---|---|---|---|
@@ -139,7 +139,7 @@ Scored once on the final 28 days (25 Apr – 22 May 2016), never used for traini
 | Random Forest | 1.137 | 2.467 | 75.9% | 0.864 | 80 trees, depth 16 |
 | XGBoost | 1.132 | 2.478 | 75.5% | 0.862 | `hist`, early-stopped |
 | LightGBM | 1.106 | 2.450 | 73.8% | 0.857 | native categoricals |
-| **LightGBM (tuned) — shipped** | **1.103** | **2.451** | **73.6%** | **0.855** | 10-trial Optuna search; best on validation |
+| **LightGBM (tuned), shipped** | **1.103** | **2.451** | **73.6%** | **0.855** | 10-trial Optuna search; best on validation |
 
 The model is chosen on validation RMSE only, so the test window stays untouched. Across four
 rolling-origin backtests, RMSE is 2.53 ± 0.14 and the model beats the seasonal naive in every fold.
@@ -168,7 +168,7 @@ Run all cells. It takes roughly 25 minutes and runs on a machine with 8 GB of RA
 
 > **Memory note.** The long-format panel is 59M rows. The notebook builds it in NumPy with explicit
 > dtypes (~600 MB); the obvious `sales.melt(...)` raises `MemoryError` on an 8 GB machine. Modelling
-> runs on a stratified 400-item sample — raise `N_ITEMS_SAMPLE` and lower `FIRST_DAY` in §2 if you
+> runs on a stratified 400-item sample. Raise `N_ITEMS_SAMPLE` and lower `FIRST_DAY` in §2 if you
 > have more RAM.
 
 ### 3. Start the stack
@@ -200,7 +200,7 @@ cd frontend && npm install && npm run dev
 ```
 
 Both commands work as written on Windows, macOS and Linux. The API adds the repository root to
-`sys.path` itself, so `forecasting` — the feature module it shares with the notebook — is importable
+`sys.path` itself, so `forecasting` (the feature module it shares with the notebook) is importable
 without a `PYTHONPATH` prefix. Running `uvicorn backend.app.main:app --reload` from the repository
 root works too.
 
@@ -279,7 +279,7 @@ authoritative list; anything else returns `404` with an explanation rather than 
 
 | Part | Contents |
 |---|---|
-| 1–2 | Load, dtype strategy, wide→long reshape, weekly price table |
+| 1 and 2 | Load, dtype strategy, wide→long reshape, weekly price table |
 | **Part 1** | EDA: trends, seasonality, products, stores, prices, promotions, SNAP, events (16 charts) |
 | **Part 2** | Calendar / event / price / lag / rolling features, and the leakage argument |
 | **Part 3** | Chronological train / validation / test split on the M5's 28-day horizon |
